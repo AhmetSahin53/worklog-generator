@@ -1,0 +1,26 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="jwl_gradient" x1="0" y1="0" x2="16" y2="16" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#37B5FB"/>
+            <stop offset="100%" stop-color="#FFFFFF"/>
+        </linearGradient>
+
+        <filter id="jwl_glow" x="-2" y="-2" width="20" height="20" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="1.0" result="blur"/>
+            <feFlood flood-color="#37B5FB" flood-opacity="0.8"/>
+            <feComposite in2="blur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+
+    <g filter="url(#jwl_glow)">
+        <path d="M3 3 V 10 C 3 11.5 4.5 12 5 11.5" stroke="url(#jwl_gradient)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <path d="M5.5 5 L 6.5 11 L 8 7 L 9.5 11 L 10.5 5" stroke="url(#jwl_gradient)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <path d="M13 3 V 10 C 13 11.5 11.5 12 11 11.5" stroke="url(#jwl_gradient)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+</svg>

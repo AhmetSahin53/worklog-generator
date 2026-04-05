@@ -12,4 +12,13 @@
         <toolWindow factoryClass="com.github.ahmetsahin53.workloggenerator.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="com.github.ahmetsahin53.workloggenerator.startup.MyProjectActivity" />
     </extensions>
+    <actions>
+        <action id="Atmosware.GenerateWorkLog"
+                class="com.atmosware.worklog.GenerateWorkLogAction"
+                text="AI Work Log"
+                description="Değişiklikleri analiz edip Work Log oluşturur">
+            <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt G"/>
+        </action>
+    </actions>
 </idea-plugin>
