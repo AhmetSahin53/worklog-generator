@@ -1,52 +1,38 @@
-# worklog-generator
+# 🚀 JWL AI Work Log Generator (IntelliJ Plugin)
 
-![Build](https://github.com/AhmetSahin53/worklog-generator/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
+**Atmosware Innovation Challenge 2026** kapsamında geliştirilmiş, yazılım geliştirme yaşam döngüsünü (SDLC) hızlandıran yapay zeka destekli IntelliJ IDE eklentisi.
 
-## Template ToDo list
-- [x] Create a new [IntelliJ Platform Plugin Template][template] project.
-- [ ] Get familiar with the [template documentation][template].
-- [ ] Adjust the [pluginGroup](./gradle.properties) and [pluginName](./gradle.properties), as well as the [id](./src/main/resources/META-INF/plugin.xml) and [sources package](./src/main/kotlin).
-- [ ] Adjust the plugin description in `README` (see [Tips][docs:plugin-description])
-- [ ] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
-- [ ] [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
-- [ ] Set the `MARKETPLACE_ID` in the above README badges. You can obtain it once the plugin is published to JetBrains Marketplace.
-- [ ] Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
-- [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
-- [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
-- [ ] Configure the [CODECOV_TOKEN](https://docs.codecov.com/docs/quick-start) secret for automated test coverage reports on PRs
+## 💡 Problem ve Çözüm
+Geliştiriciler gün içinde yazdıkları kodlar için Jira veya Azure DevOps gibi platformlara "Work Log" (İş Özeti) girmek zorundadır. Bu işlem genellikle zaman alan, sıkıcı ve teknik detayların kaybolabildiği bir süreçtir. 
 
-<!-- Plugin description -->
-This Fancy IntelliJ Platform Plugin is going to be your implementation of the brilliant ideas that you have.
+**JWL AI Work Log Generator**, IDE'nin çekirdeğine entegre olarak geliştiricinin yaptığı commit değişikliklerini anında yakalar. **Groq API** ve **Llama 3.3 (70B)** modelinin gücünü kullanarak saniyeler içinde kısa, öz ve profesyonel bir iş özeti üretir.
 
-This specific section is a source for the [plugin.xml](/src/main/resources/META-INF/plugin.xml) file which will be extracted by the [Gradle](/build.gradle.kts) during the build process.
+## ✨ Öne Çıkan Özellikler
+* **Görünmez Entegrasyon:** IntelliJ'in yerleşik Commit arayüzüne eklenen şık, fütüristik **JWL** logolu özel buton.
+* **Akıllı Kod Analizi:** Değişen Java dosyalarının eski ve yeni versiyonlarını okuyarak anlamsal bir "diff" analizi yapar.
+* **Yüksek Hız:** Groq altyapısı sayesinde devasa değişiklikler bile saniyeler içinde analiz edilir.
+* **Özel UX Tasarımı:** Üretilen metin, doğrudan panoya (clipboard) kopyalama imkanı sunan şık bir pop-up pencere ile gösterilir.
 
-To keep everything working, do not remove `<!-- ... -->` sections. 
-<!-- Plugin description end -->
+## 🛠️ Kullanılan Teknolojiler
+* **Dil:** Kotlin
+* **Platform:** IntelliJ Platform Plugin SDK
+* **Yapay Zeka:** Groq API (Llama-3.3-70b-versatile)
+* **Bağımlılıklar:** Gson (JSON Parsing), Java 17 HttpClient
 
-## Installation
+## 🚀 Kurulum ve Kullanım
 
-- Using the IDE built-in plugin system:
+### Jüriler İçin (Hızlı Kurulum)
+1. `build/distributions/` klasöründeki `.zip` dosyasını indirin.
+2. IntelliJ IDE'nizde `Settings > Plugins > ⚙️ (Dişli İkonu) > Install Plugin from Disk...` yolunu izleyin.
+3. İndirdiğiniz `.zip` dosyasını seçin ve IDE'yi yeniden başlatın.
 
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "worklog-generator"</kbd> >
-  <kbd>Install</kbd>
+### Geliştiriciler İçin (Kaynaktan Derleme)
+1. Repoyu klonlayın.
+2. `src/main/kotlin/.../GenerateWorkLogAction.kt` dosyasını açın.
+3. `apiKey` değişkenine kendi [Groq API](https://console.groq.com/) anahtarınızı girin.
+4. Gradle üzerinden `runIde` komutunu çalıştırarak sandbox ortamında test edin.
 
-- Using JetBrains Marketplace:
-
-  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
-
-  You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
-
-- Manually:
-
-  Download the [latest release](https://github.com/AhmetSahin53/worklog-generator/releases/latest) and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
-
-
----
-Plugin based on the [IntelliJ Platform Plugin Template][template].
-
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
+## 🎯 Nasıl Çalışır?
+1. Commit penceresinde değişiklik yaptığınız dosyaları seçin.
+2. Alt kısımdaki parlayan mavi **"JWL Log Üret"** butonuna tıklayın.
+3. Ekrana gelen diyalog penceresindeki "Panoya Kopyala" butonuyla metni alın ve Jira'ya yapıştırın!
