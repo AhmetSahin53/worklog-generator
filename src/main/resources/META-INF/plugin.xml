@@ -11,6 +11,13 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="com.github.ahmetsahin53.workloggenerator.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="com.github.ahmetsahin53.workloggenerator.startup.MyProjectActivity" />
+
+        <!-- Settings > Tools altına Groq API anahtarı ekranı -->
+        <applicationConfigurable
+                parentId="tools"
+                id="com.atmosware.worklog.groqSettings"
+                displayName="JWL Work Log (Groq)"
+                instance="com.atmosware.worklog.GroqSettingsConfigurable" />
     </extensions>
     <actions>
         <action id="Atmosware.GenerateWorkLog"

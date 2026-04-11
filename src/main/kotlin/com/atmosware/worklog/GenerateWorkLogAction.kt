@@ -17,11 +17,17 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.openapi.util.IconLoader
 import java.awt.datatransfer.StringSelection
+import com.intellij.openapi.diagnostic.Logger
+import java.net.http.HttpTimeoutException
+import java.time.Duration
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 
 class GenerateWorkLogAction : AnAction() {
 
     // Özel JWL Logomuzu Yüklüyoruz (icons/JWL_Log.svg)
     private val jwlIcon = IconLoader.getIcon("/icons/JWL_Log.svg", javaClass)
+    private val log = Logger.getInstance(GenerateWorkLogAction::class.java)
 
     override fun update(e: AnActionEvent) {
         // Butonun metnini ve simgesini dinamik olarak ayarlıyoruz
@@ -42,11 +48,22 @@ class GenerateWorkLogAction : AnAction() {
 
         // 1. Kod farklarını (Diff) toplayacağımız metin oluşturucu
         val diffBuilder = StringBuilder()
-        diffBuilder.append("Sen kıdemli bir yazılım geliştiricisin. Aşağıdaki kod değişikliklerini inceleyip Jira için kısa, öz ve profesyonel bir Türkçe Work Log yazar mısın?\n")
-        diffBuilder.append("KURALLAR:\n")
-        diffBuilder.append("1. Dosya isimlerini tek tek sayarak aşırı detaya GİRME.\n")
-        diffBuilder.append("2. Sadece eklenen ana özellikleri ve çözülen sorunları maksimum 3-4 kısa madde halinde özetle.\n")
-        diffBuilder.append("3. Gereksiz teknik detaylardan kaçın, yöneticilerin okuyacağı kıvamda net ve anlaşılır olsun.\n\n")
+        // Prompt'u daha sabit/deterministik yap: çıktı biçimini netleştir.
+        diffBuilder.append(
+            """
+            Aşağıdaki kod değişikliklerini inceleyip Jira için Work Log üret.
+
+            ÇIKTI BİÇİMİ (AYNEN UY):
+            - En fazla 4 madde.
+            - Her madde kısa bir cümle olsun.
+            - Başlık, selamlama, kapanış, emoji, kod bloğu YOK.
+
+            KURALLAR:
+            1) Dosya isimlerini tek tek sayma.
+            2) Sadece gerçekten yapılan değişiklikleri yaz; olmayan özellik/test/performans iyileştirmesi uydurma.
+            3) %100 Türkçe yaz. İngilizce/başka dilde tek bir kelime bile kullanma.
+            """.trimIndent() + "\n\n"
+        )
 
         for (change in changes) {
             val fileName = change.virtualFile?.name ?: "Bilinmeyen Dosya"
@@ -63,51 +80,135 @@ class GenerateWorkLogAction : AnAction() {
 
         val finalPrompt = diffBuilder.toString()
 
-        // 2. Groq'a gönderilecek veriyi simüle et / test et
         val aiResponse = callAiApi(finalPrompt)
 
-        // 3. Kullanıcıya dialog penceresinde göster ve kopyalama ikonunu ekle
         WorkLogDialog(aiResponse).show()
     }
 
-    // API'ye HTTP isteği atacağımız gerçek metod
     private fun callAiApi(prompt: String): String {
-        // BURAYA GROQ API ANAHTARINI YAZ (gsk_ ile başlayan)
-        val apiKey = "SENIN_GROQ_API_ANAHTARIN_BURAYA_GELECEK"
+        val envKey = System.getenv("GROQ_API_KEY")?.trim().orEmpty()
+        val storedKey = ApplicationManager.getApplication().service<GroqApiKeyService>().getApiKey().orEmpty()
+        val apiKey = (if (envKey.isNotBlank()) envKey else storedKey).trim()
+
+        if (apiKey.isBlank()) {
+            return "Groq API anahtarı bulunamadı. Çözüm: (1) Windows ortam değişkeni GROQ_API_KEY tanımlayın veya (2) IDE Settings > Tools > JWL Work Log (Groq) ekranından anahtarı kaydedin."
+        }
+
         val url = "https://api.groq.com/openai/v1/chat/completions"
-
-        // Groq (OpenAI formatı) için JSON gövdesini hazırlıyoruz
         val gson = com.google.gson.Gson()
-        val requestBodyMap = mapOf(
-            "model" to "llama-3.3-70b-versatile",
-            "messages" to listOf(
-                mapOf("role" to "user", "content" to prompt)
-            )
-        )
-        val jsonBody = gson.toJson(requestBodyMap)
 
-        // İsteği gönderiyoruz (Authorization header'ı eklendi)
-        val client = java.net.http.HttpClient.newHttpClient()
-        val request = java.net.http.HttpRequest.newBuilder()
-            .uri(java.net.URI.create(url))
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer $apiKey")
-            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonBody, Charsets.UTF_8))
+        fun buildBody(userPrompt: String, seed: Int): String {
+            val requestBodyMap = linkedMapOf(
+                "model" to "llama-3.3-70b-versatile",
+                // Deterministikliğe yaklaşmak için sampling'i kıs.
+                // Daha katı deterministiklik için temperature=0.0 ve top_p=0.0
+                "temperature" to 0.0,
+                "top_p" to 0.0,
+                // max_tokens ekleyerek çıktı uzunluğunu sınırla
+                "max_tokens" to 200,
+                // Groq/OpenAI uyumlu uçlarda seed desteklenebiliyor; desteklenmezse sorun olmaz.
+                "seed" to seed,
+                "messages" to listOf(
+                    mapOf(
+                        "role" to "system",
+                        "content" to "Sen bir Türkçe teknik yazım asistanısın. " +
+                                "Sadece Türkçe çıktı üret. Sadece 1-4 madde yaz; her madde '-' ile başlamalı. " +
+                                "Başlık, selamlama, kapanış, emoji veya kod bloğu yazma. Her madde kısa ve açık bir cümle olsun. Başka hiçbir şey yazma."
+                    ),
+                    mapOf("role" to "user", "content" to userPrompt)
+                )
+            )
+            return gson.toJson(requestBodyMap)
+        }
+
+        val client = java.net.http.HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(20))
             .build()
 
-        return try {
+        fun sendOnce(body: String): Pair<Int, String> {
+            val request = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create(url))
+                .timeout(Duration.ofSeconds(60))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer $apiKey")
+                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body, Charsets.UTF_8))
+                .build()
+
             val response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
+            return response.statusCode() to response.body()
+        }
 
-            // Gelen JSON yanıtını parse ediyoruz
-            val jsonResponse = gson.fromJson(response.body(), com.google.gson.JsonObject::class.java)
-
-            // Yanıtın içinden sadece metin (content) kısmını çekiyoruz
-            if (jsonResponse.has("choices")) {
+        fun extractContent(body: String): String? {
+            return try {
+                val jsonResponse = gson.fromJson(body, com.google.gson.JsonObject::class.java)
+                if (!jsonResponse.has("choices")) return null
                 val choices = jsonResponse.getAsJsonArray("choices")
-                choices.get(0).asJsonObject.getAsJsonObject("message").get("content").asString
-            } else {
-                "API'den beklenmeyen yanıt: ${response.body()}"
+                if (choices.size() == 0) return null
+                choices.get(0).asJsonObject
+                    .getAsJsonObject("message")
+                    .get("content")
+                    .asString
+                    .trim()
+            } catch (t: Throwable) {
+                log.warn("Groq yanıtı parse edilemedi", t)
+                null
             }
+        }
+
+        fun looksNonTurkish(text: String): Boolean {
+            // Heuristik: bariz İngilizce bağlaç/kelimeler veya çok sayıda ASCII kelime.
+            val lowered = text.lowercase()
+            val forbiddenMarkers = listOf(
+                "the ", "and ", "fixed", "improved", "added", "changed", "refactor", "performance", "test",
+                "commit", "worklog", "feature"
+            )
+            if (forbiddenMarkers.any { lowered.contains(it) }) return true
+
+            // Türkçe karakter yoksa ve metin uzunsa şüpheli.
+            val hasTurkishChars = text.any { it in "çğıöşüÇĞİÖŞÜ" }
+            if (!hasTurkishChars && text.length > 80) return true
+
+            // Çok kısa metinler için esneklik sağla
+            if (text.length < 10) return false
+
+            // Latin harf dışı (Çince vb.) yakala.
+            val hasCjk = text.any { Character.UnicodeScript.of(it.code) == Character.UnicodeScript.HAN }
+            return hasCjk
+        }
+
+        fun enforceBulletFormat(text: String): Boolean {
+            val lines = text.lines().map { it.trim() }.filter { it.isNotBlank() }
+            // En az 1, en fazla 4 madde; her satır - ile başlamalı.
+            if (lines.isEmpty() || lines.size > 4) return false
+            // Her satır '-' ile başlamalı ve Türkçe karakter içermeli
+            val turkishLetters = "çğıöşüÇĞİÖŞÜ"
+            return lines.all {
+                it.startsWith("-") && it.length <= 250 && it.drop(1).any { ch -> ch in turkishLetters }
+            }
+        }
+
+        return try {
+            // 1) İlk deneme
+            val (code1, body1) = sendOnce(buildBody(prompt, seed = 42))
+            val content1 = extractContent(body1)
+            if (code1 in 200..299 && content1 != null && !looksNonTurkish(content1) && enforceBulletFormat(content1)) {
+                content1
+            } else {
+                // 2) İkinci deneme: daha sert talimatla yeniden iste
+                val retryPrompt =
+                    prompt +
+                        "\n\nUYARI: Önceki çıktı kurallara uymadı. Şimdi SADECE Türkçe ve SADECE 1-4 madde olacak şekilde '-' ile başlayan maddeler yaz. Başka hiç bir şey yazma."
+                val (code2, body2) = sendOnce(buildBody(retryPrompt, seed = 42))
+                val content2 = extractContent(body2)
+                if (code2 in 200..299 && content2 != null) {
+                    // Son çare: yine de bir şey döndür.
+                    content2
+                } else {
+                    "API Hatası: HTTP $code2 - ${body2.take(500)}"
+                }
+            }
+        } catch (e: HttpTimeoutException) {
+            "Bağlantı Zaman Aşımı: ${e.message}"
         } catch (e: Exception) {
             "Bağlantı Hatası: ${e.message}"
         }

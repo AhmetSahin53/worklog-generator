@@ -1,8 +1,15 @@
+<!-- Plugin description -->
+Atmosware Innovation Challenge 2026 kapsamında geliştirilmiş, yazılım geliştirme yaşam döngüsünü (SDLC) hızlandıran yapay zeka destekli IntelliJ IDE eklentisi.
+
+JWL AI Work Log Generator, geliştiricilerin commit sırasında yaptığı değişiklikleri analiz ederek otomatik, kısa ve profesyonel work log üretir. Groq API ve Llama 3.3 (70B) modeli ile yüksek hızlı ve akıllı özetleme sağlar.
+
+Commit ekranına entegre çalışır ve tek tıkla Jira/Azure DevOps için hazır açıklama üretir.
+<!-- Plugin description end -->
 # 🚀 JWL AI Work Log Generator (IntelliJ Plugin)
 
 **Atmosware Innovation Challenge 2026** kapsamında geliştirilmiş, yazılım geliştirme yaşam döngüsünü (SDLC) hızlandıran yapay zeka destekli IntelliJ IDE eklentisi.
 ## 💡 Problem ve Çözüm
-Geliştiriciler gün içinde yazdıkları kodlar için Jira veya Azure DevOps gibi platformlara "Work Log" (İş Özeti) girmek zorundadır. Bu işlem genellikle zaman alan, sıkıcı ve teknik detayların kaybolabildiği bir süreçtir. 
+Geliştiriciler gün içinde yazdıkları kodlar için Jira veya Azure DevOps gibi platformlara "Work Log" (İş Özeti) girmek zorundadır. Bu işlem genellikle zaman alan, sıkıcı ve teknik detayların kaybolabildiği bir süreçtir.
 
 ## ✨ Öne Çıkan Özellikler
 * **Görünmez Entegrasyon:** IntelliJ'in yerleşik Commit arayüzüne eklenen şık, fütüristik **JWL** logolu özel buton.
