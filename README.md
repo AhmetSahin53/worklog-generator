@@ -11,32 +11,28 @@ Commit ekranına entegre çalışır ve tek tıkla Jira/Azure DevOps için hazı
 ## 💡 Problem ve Çözüm
 Geliştiriciler gün içinde yazdıkları kodlar için Jira veya Azure DevOps gibi platformlara "Work Log" (İş Özeti) girmek zorundadır. Bu işlem genellikle zaman alan, sıkıcı ve teknik detayların kaybolabildiği bir süreçtir.
 
-## ✨ Öne Çıkan Özellikler
-* **Görünmez Entegrasyon:** IntelliJ'in yerleşik Commit arayüzüne eklenen şık, fütüristik **JWL** logolu özel buton.
-* **Akıllı Kod Analizi:** Değişen Java dosyalarının eski ve yeni versiyonlarını okuyarak anlamsal bir "diff" analizi yapar.
-* **Yüksek Hız:** Groq altyapısı sayesinde devasa değişiklikler bile saniyeler içinde analiz edilir.
-* **Özel UX Tasarımı:** Üretilen metin, doğrudan panoya (clipboard) kopyalama imkanı sunan şık bir pop-up pencere ile gösterilir.
+**JWL AI Work Log Generator**, IDE'nin çekirdeğine entegre olarak geliştiricinin yaptığı commit değişikliklerini (diff) anında yakalar. **Groq API** ve **Llama 3.3 (70B)** modelinin gücünü kullanarak saniyeler içinde kısa, öz ve profesyonel bir iş özeti üretir.
+
+## ✨ Öne Çıkan Yeni Özellikler
+* **Kurumsal Güvenlik (PasswordSafe):** API anahtarları kod içerisine gömülmez. IntelliJ'in yerleşik `PasswordSafe` altyapısı kullanılarak IDE ayarlarında şifrelenmiş olarak güvenle saklanır.
+* **Deterministik ve Akıllı Analiz:** Özel prompt mühendisliği, düşük `temperature` ve sabit `seed` ayarları sayesinde her seferinde kurumsal standartlara uygun, tutarlı ve %100 Türkçe çıktılar üretilir.
+* **Gelişmiş Hata Yönetimi:** Dil modelinin belirlenen formattan (maddeleme) çıkması durumunda devreye giren otomatik doğrulama (post-process) ve yeniden deneme (retry) mekanizmaları ile stabilite garanti altına alınmıştır.
+* **Görünmez Entegrasyon:** IntelliJ'in yerleşik Commit arayüzüne eklenen şık ve fütüristik özel buton ile pürüzsüz bir UX (Kullanıcı Deneyimi) sunulur.
 
 ## 🛠️ Kullanılan Teknolojiler
-* **Dil:** Kotlin
-* **Platform:** IntelliJ Platform Plugin SDK
+* **Dil & Platform:** Kotlin, IntelliJ Platform Plugin SDK
 * **Yapay Zeka:** Groq API (Llama-3.3-70b-versatile)
-* **Bağımlılıklar:** Gson (JSON Parsing), Java 17 HttpClient
+* **Bağımlılıklar & Mimari:** Gson (JSON Parsing), Java 17 HttpClient, IntelliJ CredentialStore API
 
-## 🚀 Kurulum ve Kullanım
+## 🚀 Kurulum ve Kullanım (Jüriler İçin)
 
-### Jüriler İçin (Hızlı Kurulum)
-1. `build/distributions/` klasöründeki `.zip` dosyasını indirin.
-2. IntelliJ IDE'nizde `Settings > Plugins > ⚙️ (Dişli İkonu) > Install Plugin from Disk...` yolunu izleyin.
-3. İndirdiğiniz `.zip` dosyasını seçin ve IDE'yi yeniden başlatın.
+Projenin test edilebilmesi için kurulum süreci son derece basitleştirilmiştir:
 
-### Geliştiriciler İçin (Kaynaktan Derleme)
-1. Repoyu klonlayın.
-2. `src/main/kotlin/.../GenerateWorkLogAction.kt` dosyasını açın.
-3. `apiKey` değişkenine kendi [Groq API](https://console.groq.com/) anahtarınızı girin.
-4. Gradle üzerinden `runIde` komutunu çalıştırarak sandbox ortamında test edin.
+1. Bu repositordaki güncel `JWL_Plugin.zip` dosyasını indirin. (Eğer kaynak koddan derlediyseniz `build/distributions/` klasöründen alabilirsiniz).
+2. IntelliJ IDE'nizde `Settings > Plugins > ⚙️ (Dişli İkonu) > Install Plugin from Disk...` yolunu izleyip zip dosyasını seçin ve IDE'yi yeniden başlatın.
+3. IDE açıldıktan sonra **`Settings > Tools > JWL Work Log`** menüsüne gidin.
+4. Groq API anahtarınızı ilgili alana yapıştırıp kaydedin. (Eklenti kullanıma hazırdır!)
 
 ## 🎯 Nasıl Çalışır?
 1. Commit penceresinde değişiklik yaptığınız dosyaları seçin.
 2. Alt kısımdaki parlayan mavi **"JWL Log Üret"** butonuna tıklayın.
-3. Ekrana gelen diyalog penceresindeki "Panoya Kopyala" butonuyla metni alın ve Jira'ya yapıştırın!
